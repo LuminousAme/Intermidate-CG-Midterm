@@ -28,16 +28,21 @@ namespace Titan {
 		//passes the previous framebuffer with the texture to apply as a parameter
 		void ApplyEffect(TTN_PostEffect::spostptr buffer) override;
 
+		//reshapes the effect
+		void Reshape(unsigned width, unsigned height);
+
 		//Getters
 		float GetThreshold() { return m_threshold; }
 		int GetNumOfPasses() { return m_numOfPasses; }
 		float GetBlurDownScale() { return m_blurBufferDivisor; }
 		float* GetWeights() { return m_weights; }
+		float GetRadius() { return m_radius; }
 		//Setters
 		void SetThreshold(float threshold) { m_threshold = threshold; }
 		void SetNumOfPasses(int numOfPasses) { m_numOfPasses = numOfPasses; }
-		void SetBlurDownScale(float downscale) { m_blurBufferDivisor = downscale; }
+		void SetBlurDownScale(float downscale);
 		void SetWeights(float weights[5]) { for(int i = 0; i < 5; i++) m_weights[i] = weights[i]; }
+		void SetRadius(float radius) { m_radius = radius; }
 		
 	private:
 		//the threshold for how much of the bright colours to extract
