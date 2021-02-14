@@ -31,14 +31,25 @@ namespace Titan {
 		//Getters
 		float GetThreshold() { return m_threshold; }
 		int GetNumOfPasses() { return m_numOfPasses; }
+		float GetBlurDownScale() { return m_blurBufferDivisor; }
+		float* GetWeights() { return m_weights; }
 		//Setters
 		void SetThreshold(float threshold) { m_threshold = threshold; }
 		void SetNumOfPasses(int numOfPasses) { m_numOfPasses = numOfPasses; }
-
+		void SetBlurDownScale(float downscale) { m_blurBufferDivisor = downscale; }
+		void SetWeights(float weights[5]) { for(int i = 0; i < 5; i++) m_weights[i] = weights[i]; }
+		
 	private:
 		//the threshold for how much of the bright colours to extract
-		float m_threshold;
+		float m_threshold = 0.2f;
 		//the number of blur passes that should be performed
-		int m_numOfPasses;
+		int m_numOfPasses = 5;
+		//the weights for the operation, the user can set these if they want to give them more fine control
+		float m_weights[5] = { 0.22f, 0.19f, 0.12, 0.05, 0.03 };
+
+		//the scale by which the blur framebuffers should be reduced to save on memory
+		float m_blurBufferDivisor = 4.0f;
+		//the radius of the effect
+		float m_radius = 1.0f;
 	};
 }
