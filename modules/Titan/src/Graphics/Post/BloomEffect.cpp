@@ -148,7 +148,7 @@ namespace Titan {
 	}
 
 	//sets the scale the blur framebuffers are divided by to save memory
-	void TTN_BloomEffect::SetBlurDownScale(float downscale)
+	void TTN_BloomEffect::SetBlurDownScale(unsigned downscale)
 	{
 		//set it
 		m_blurBufferDivisor = downscale;

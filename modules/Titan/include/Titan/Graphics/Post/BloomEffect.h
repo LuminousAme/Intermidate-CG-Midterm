@@ -34,13 +34,13 @@ namespace Titan {
 		//Getters
 		float GetThreshold() { return m_threshold; }
 		int GetNumOfPasses() { return m_numOfPasses; }
-		float GetBlurDownScale() { return m_blurBufferDivisor; }
+		unsigned GetBlurDownScale() { return m_blurBufferDivisor; }
 		float* GetWeights() { return m_weights; }
 		float GetRadius() { return m_radius; }
 		//Setters
 		void SetThreshold(float threshold) { m_threshold = threshold; }
 		void SetNumOfPasses(int numOfPasses) { m_numOfPasses = numOfPasses; }
-		void SetBlurDownScale(float downscale);
+		void SetBlurDownScale(unsigned downscale);
 		void SetWeights(float weights[5]) { for(int i = 0; i < 5; i++) m_weights[i] = weights[i]; }
 		void SetRadius(float radius) { m_radius = radius; }
 		
@@ -53,7 +53,7 @@ namespace Titan {
 		float m_weights[5] = { 0.22f, 0.19f, 0.12, 0.05, 0.03 };
 
 		//the scale by which the blur framebuffers should be reduced to save on memory
-		float m_blurBufferDivisor = 4.0f;
+		unsigned m_blurBufferDivisor = 4.0;
 		//the radius of the effect
 		float m_radius = 1.0f;
 	};
