@@ -215,21 +215,25 @@ void MidtermScene::Update(float deltaTime)
 	if (currentPath == 1) {
 		Get<TTN_Transform>(ship).SetPos(TTN_Interpolation::Lerp(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f, 20.0f, 0.0f), 
 			std::clamp(timeSinceSegmentStart / segmentLenghts[1], 0.0f, 1.0f)));
+
+		Get<TTN_Transform>(ship).RotateFixed(glm::vec3(0.0f, 90.0f / segmentLenghts[1] * deltaTime, 0.0f));
 	}
 	//if the ship is flying off
 	if (currentPath == 2) {
-		Get<TTN_Transform>(ship).SetPos(TTN_Interpolation::Lerp(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(0.0f, 500.0f, 1000.0f),
+		Get<TTN_Transform>(ship).SetPos(TTN_Interpolation::Lerp(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(1000.0f, 500.0f, 0.0f),
 			SlowStart(std::clamp(timeSinceSegmentStart / segmentLenghts[2], 0.0f, 1.0f))));
 	}
 	//if the ship is flying back
 	if (currentPath == 3) {
-		Get<TTN_Transform>(ship).SetPos(TTN_Interpolation::Lerp(glm::vec3(0.0f, 500.0f, -1000.0f), glm::vec3(0.0f, 20.0f, 0.0f),
+		Get<TTN_Transform>(ship).SetPos(TTN_Interpolation::Lerp(glm::vec3(-1000.0f, 500.0f, 0.0f), glm::vec3(0.0f, 20.0f, 0.0f),
 			FastStart(std::clamp(timeSinceSegmentStart / segmentLenghts[3], 0.0f, 1.0f))));
 	}
 	//if the ship is landing
 	if (currentPath == 4) {
 		Get<TTN_Transform>(ship).SetPos(TTN_Interpolation::Lerp(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(0.0f, 3.0f, 0.0f),
 			std::clamp(timeSinceSegmentStart / segmentLenghts[4], 0.0f, 1.0f)));
+
+		Get<TTN_Transform>(ship).RotateFixed(glm::vec3(0.0f, -90.0f / segmentLenghts[4] * deltaTime, 0.0f));
 	}
 
 	//call the imgui update function
