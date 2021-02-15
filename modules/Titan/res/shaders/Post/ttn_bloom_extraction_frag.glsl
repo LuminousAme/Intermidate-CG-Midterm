@@ -16,7 +16,7 @@ void main() {
 	vec4 color = texture(s_SourceImage, inUV);
 
 	//calculate the normalized (0-1) brightness of the fragment
-	float lumience = 0.2989 * color.r + 0.587 * source.g + 0.114 * source.b;
+	float lumience = 0.2989 * color.r + 0.587 * color.g + 0.114 * color.b;
 
 	//use that to decide if the fragment should be black (below threshold) or retain it's color (above threshold)
 	frag_color = mix(vec4(vec3(0.0), 1.0), color, ceil(lumience - u_Threshold));

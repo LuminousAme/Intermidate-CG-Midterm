@@ -25,6 +25,7 @@ namespace Titan {
 		//create a new framebuffer with a basic color for the horizontal blurs
 		m_buffers.push_back(TTN_Framebuffer::Create());
 		m_buffers[index]->AddColorTarget(GL_RGBA8);
+		m_buffers[index]->AddDepthTarget();
 		//init the framebuffer, dividing by the divisor to save memory
 		m_buffers[index]->Init(width / m_blurBufferDivisor, height / m_blurBufferDivisor);
 		index++;
@@ -32,8 +33,10 @@ namespace Titan {
 		//create a new framebuffer with a basic color and depth target for the vertical blurs
 		m_buffers.push_back(TTN_Framebuffer::Create());
 		m_buffers[index]->AddColorTarget(GL_RGBA8);
+		m_buffers[index]->AddDepthTarget();
 		//init the framebuffer, dividing by the divisor to save memory
 		m_buffers[index]->Init(width / m_blurBufferDivisor, height / m_blurBufferDivisor);
+		index++;
 
 		//set up the shaders
 		index = (int)m_shaders.size();
@@ -57,7 +60,7 @@ namespace Titan {
 		m_shaders.push_back(TTN_Shader::Create());
 		//load in the shader
 		m_shaders[index]->LoadShaderStageFromFile("shaders/Post/ttn_passthrough_vert.glsl", GL_VERTEX_SHADER);
-		m_shaders[index]->LoadShaderStageFromFile("shaders/Post/ttn_gaussian_horizontal.glsl", GL_FRAGMENT_SHADER);
+		m_shaders[index]->LoadShaderStageFromFile("shaders/Post/ttn_gaussian_horizontal_frag.glsl", GL_FRAGMENT_SHADER);
 		m_shaders[index]->Link();
 		index++;
 
@@ -65,7 +68,7 @@ namespace Titan {
 		m_shaders.push_back(TTN_Shader::Create());
 		//load in the shader
 		m_shaders[index]->LoadShaderStageFromFile("shaders/Post/ttn_passthrough_vert.glsl", GL_VERTEX_SHADER);
-		m_shaders[index]->LoadShaderStageFromFile("shaders/Post/ttn_gaussian_vertical.glsl", GL_FRAGMENT_SHADER);
+		m_shaders[index]->LoadShaderStageFromFile("shaders/Post/ttn_gaussian_vertical_frag.glsl", GL_FRAGMENT_SHADER);
 		m_shaders[index]->Link();
 
 		//init the original 
@@ -81,6 +84,7 @@ namespace Titan {
 		BindShader(0);
 		//bind the previous effect as the color
 		buffer->BindColorAsTexture(0, 0, 0);
+		//m_buffers[0]->BindColorAsTexture(0, 0);
 		//set the threshold as a uniform
 		m_shaders[0]->SetUniform("u_Threshold", m_threshold);
 		//renders to the fullscreen quad in the second (hori blur) framebuffer
@@ -129,12 +133,12 @@ namespace Titan {
 		//bind the previous effect's color as a texture
 		buffer->BindColorAsTexture(0, 0, 0);
 		//and the result of the blur as a second texture
-		m_buffers[1]->BindColorAsTexture(0, 2);
-		//renders to the fullscreen quad in the first framebuffer
+		m_buffers[1]->BindColorAsTexture(0, 1);
+		//renders to the fullscreen quad in the last, unused framebuffer
 		m_buffers[0]->RenderToFSQ();
 		//and unbind everything
 		buffer->UnbindTexture(0);
-		m_buffers[1]->UnbindTexture(0);
+		m_buffers[1]->UnbindTexture(1);
 		UnbindShader();
 	}
 

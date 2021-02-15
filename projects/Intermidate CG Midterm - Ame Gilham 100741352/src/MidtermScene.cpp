@@ -8,7 +8,7 @@
 
 //default constructor
 MidtermScene::MidtermScene()
-	: TTN_Scene(glm::vec3(1.0f), 0.2f)
+	: TTN_Scene(glm::vec3(1.0f), 0.0f)
 {
 }
 
@@ -20,6 +20,13 @@ void MidtermScene::InitScene()
 	mousePos = glm::vec2(0.0f, 0.0f);
 	facing = glm::vec3(0.0f, 0.0f, 1.0f);
 	m_deltaTime = 0.0f;
+	
+	//setup bloom effect
+	m_bloom = TTN_BloomEffect::Create();
+	glm::ivec2 windowSize = TTN_Backend::GetWindowSize();
+	m_bloom->Init(windowSize.x, windowSize.y);
+	m_bloom->SetShouldApply(false);
+	m_PostProcessingEffects.push_back(m_bloom);
 
 	//create materials and add them to the vector of materials
 	//skybox
@@ -72,7 +79,45 @@ void MidtermScene::InitScene()
 
 	//entity for the ship
 	{
+		ship = CreateEntity();
 
+		//setup a mesh renderer for the ship
+		TTN_Renderer shipRenderer = TTN_Renderer(TTN_AssetSystem::GetMesh("ship mesh"), TTN_AssetSystem::GetShader("basic shader"));
+		shipRenderer.SetMat(shipMat);
+		//attach that renderer to the entity
+		AttachCopy<TTN_Renderer>(ship, shipRenderer);
+
+		//setup a transform for the ship
+		TTN_Transform shipTrans = TTN_Transform(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+		//attach that transform to the entity
+		AttachCopy<TTN_Transform>(ship, shipTrans);
+	}
+
+	//entities for the lights that play from the ship's engines
+	for(int i = 0; i < 2; i++) {
+		m_Lights.push_back(CreateEntity());
+
+		//setup a mesh renderer for the ship
+		TTN_Renderer shipRenderer = TTN_Renderer(TTN_AssetSystem::GetMesh("ship mesh"), TTN_AssetSystem::GetShader("basic shader"));
+		shipRenderer.SetMat(shipMat);
+		//attach that renderer to the entity
+		AttachCopy<TTN_Renderer>(m_Lights[i], shipRenderer);
+
+		//set up a trasnform for the light
+		TTN_Transform lightTrans = TTN_Transform();
+		float factor = (i == 0) ? -1.0f : 1.0f;
+		lightTrans.SetPos(glm::vec3(factor * 1.446f, -0.361f, -7.006f));
+		lightTrans.SetScale(glm::vec3(0.1f));
+		//attach that transform to the light entity
+		AttachCopy<TTN_Transform>(m_Lights[i], lightTrans);
+
+		//set up a light component for the light
+		TTN_Light lightLight = TTN_Light(glm::vec3(0.8f, 0.2f, 0.0f), 0.3f, 3.5f, 0.3f, 0.0f, 0.3f);
+		//attach that light to the light entity
+		AttachCopy<TTN_Light>(m_Lights[i], lightLight);
+
+		//make the light a child of the ship
+		Get<TTN_Transform>(m_Lights[i]).SetParent(&Get<TTN_Transform>(ship), &ship);
 	}
 }
 
@@ -81,6 +126,9 @@ void MidtermScene::Update(float deltaTime)
 {
 	//copy the change in time over so the input checks can use them
 	m_deltaTime = deltaTime;
+
+	//call the imgui update function
+	ImGui();
 
 	//don't forget to call the base scene's update
 	TTN_Scene::Update(deltaTime);
@@ -148,6 +196,110 @@ void MidtermScene::ImGui()
 {
 	//begin the imgui tab
 	ImGui::Begin("Editor");
+
+	//light control
+	if (ImGui::CollapsingHeader("Light Controls")) {
+		ImGui::Text("Maximum number of lights: 16");
+
+		//scene level lighting
+		float sceneAmbientLight[3], sceneAmbientStr;
+		sceneAmbientLight[0] = GetSceneAmbientColor().r;
+		sceneAmbientLight[1] = GetSceneAmbientColor().g;
+		sceneAmbientLight[2] = GetSceneAmbientColor().b;
+		sceneAmbientStr = GetSceneAmbientLightStrength();
+
+		//scene level ambient strenght
+		if (ImGui::SliderFloat("Scene level ambient strenght", &sceneAmbientStr, 0.0f, 1.0f)) {
+			SetSceneAmbientLightStrength(sceneAmbientStr);
+		}
+
+		//scene level ambient color
+		if (ImGui::ColorPicker3("Scene level ambient color", sceneAmbientLight)) {
+			SetSceneAmbientColor(glm::vec3(sceneAmbientLight[0], sceneAmbientLight[1], sceneAmbientLight[2]));
+		}
+
+		//loop through all the lights
+		int i = 0;
+		std::vector<entt::entity>::iterator it = m_Lights.begin();
+		while (it != m_Lights.end()) {
+			//make temp floats for their data
+			float color[3], pos[3], ambientStr, specularStr, attenConst, attenLine, attenQuad;
+			TTN_Light& tempLightRef = Get<TTN_Light>(*it);
+			TTN_Transform& tempLightTransRef = Get<TTN_Transform>(*it);
+			color[0] = tempLightRef.GetColor().r;
+			color[1] = tempLightRef.GetColor().g;
+			color[2] = tempLightRef.GetColor().b;
+			pos[0] = tempLightTransRef.GetPos().x;
+			pos[1] = tempLightTransRef.GetPos().y;
+			pos[2] = tempLightTransRef.GetPos().z;
+			ambientStr = tempLightRef.GetAmbientStrength();
+			specularStr = tempLightRef.GetSpecularStrength();
+			attenConst = tempLightRef.GetConstantAttenuation();
+			attenLine = tempLightRef.GetLinearAttenuation();
+			attenQuad = tempLightRef.GetQuadraticAttenuation();
+
+			//position
+			std::string tempPosString = "Light " + std::to_string(i) + " Position";
+			if (ImGui::SliderFloat3(tempPosString.c_str(), pos, -10.0f, 10.0f)) {
+				tempLightTransRef.SetPos(glm::vec3(pos[0], pos[1], pos[2]));
+			}
+
+			//color
+			std::string tempColorString = "Light " + std::to_string(i) + " Color";
+			if (ImGui::ColorPicker3(tempColorString.c_str(), color)) {
+				tempLightRef.SetColor(glm::vec3(color[0], color[1], color[2]));
+			}
+
+			//strenghts
+			std::string tempAmbientStrString = "Light " + std::to_string(i) + " Ambient strenght";
+			if (ImGui::SliderFloat(tempAmbientStrString.c_str(), &ambientStr, 0.0f, 10.0f)) {
+				tempLightRef.SetAmbientStrength(ambientStr);
+			}
+
+			std::string tempSpecularStrString = "Light " + std::to_string(i) + " Specular strenght";
+			if (ImGui::SliderFloat(tempSpecularStrString.c_str(), &specularStr, 0.0f, 10.0f)) {
+				tempLightRef.SetSpecularStrength(specularStr);
+			}
+
+			//attenutaition
+			std::string tempAttenConst = "Light " + std::to_string(i) + " Constant Attenuation";
+			if (ImGui::SliderFloat(tempAttenConst.c_str(), &attenConst, 0.0f, 100.0f)) {
+				tempLightRef.SetConstantAttenuation(attenConst);
+			}
+
+			std::string tempAttenLine = "Light " + std::to_string(i) + " Linear Attenuation";
+			if (ImGui::SliderFloat(tempAttenLine.c_str(), &attenLine, 0.0f, 100.0f)) {
+				tempLightRef.SetLinearAttenuation(attenLine);
+			}
+
+			std::string tempAttenQuad = "Light " + std::to_string(i) + " Quadratic Attenuation";
+			if (ImGui::SliderFloat(tempAttenQuad.c_str(), &attenQuad, 0.0f, 100.0f)) {
+				tempLightRef.SetQuadraticAttenuation(attenQuad);
+			}
+
+			std::string tempButton = "Remove Light " + std::to_string(i);
+			if (ImGui::Button(tempButton.c_str())) {
+				DeleteEntity(*it);
+				it = m_Lights.erase(it);
+			}
+
+			i++;
+			it++;
+		}
+
+		//if there are less than 16 lights, give a button that allows the user to add a new light
+		if (i < 15) {
+			if (ImGui::Button("Add New Light")) {
+				m_Lights.push_back(CreateEntity());
+
+				TTN_Transform newTrans = TTN_Transform();
+				TTN_Light newLight = TTN_Light();
+
+				AttachCopy(m_Lights[m_Lights.size() - 1], newTrans);
+				AttachCopy(m_Lights[m_Lights.size() - 1], newLight);
+			}
+		}
+	}
 
 	//the control for all the assignment requirements
 	if (ImGui::CollapsingHeader("Effect Controls")) {

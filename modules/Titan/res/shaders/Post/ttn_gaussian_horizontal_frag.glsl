@@ -1,4 +1,4 @@
-#verison 420 
+#version 420 
 
 //take in the uvs from the vertex shader
 layout(location = 0) in vec2 inUV;
