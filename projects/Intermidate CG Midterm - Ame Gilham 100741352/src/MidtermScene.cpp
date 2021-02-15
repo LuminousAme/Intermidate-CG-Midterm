@@ -39,9 +39,17 @@ void MidtermScene::InitScene()
 	//landing pad
 	TTN_Material::smatptr landingPadMat = TTN_Material::Create();
 	landingPadMat->SetAlbedo(TTN_AssetSystem::GetTexture2D("landing pad text"));
+	m_materials.push_back(landingPadMat);
 	//lighthouse
 	TTN_Material::smatptr lightHouseMat = TTN_Material::Create();
 	lightHouseMat->SetAlbedo(TTN_AssetSystem::GetTexture2D("lighthouse text"));
+	m_materials.push_back(lightHouseMat);
+	//ground
+	TTN_Material::smatptr groundMat = TTN_Material::Create();
+	groundMat->SetAlbedo(TTN_AssetSystem::GetTexture2D("ground text"));
+	m_materials.push_back(groundMat);
+	groundMat->GetAlbedo()->SetHoriWrapMode(Texture_Wrap_Mode::Repeat);
+	groundMat->GetAlbedo()->SetVertWrapMode(Texture_Wrap_Mode::Repeat);
 
 	//setup entities
 	//entity for the camera
@@ -52,7 +60,7 @@ void MidtermScene::InitScene()
 		Attach<TTN_Transform>(m_camera);
 		Attach<TTN_Camera>(m_camera);
 		auto& camTrans = Get<TTN_Transform>(m_camera);
-		camTrans.SetPos(glm::vec3(0.0f, 5.0f, 0.0f));
+		camTrans.SetPos(glm::vec3(0.0f, 5.0f, -10.0f));
 		camTrans.SetScale(glm::vec3(1.0f, 1.0f, 1.0f));
 		camTrans.LookAlong(glm::vec3(0.0, 0.0, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		Get<TTN_Camera>(m_camera).CalcPerspective(60.0f, 1.78f, 0.01f, 1000.f);
@@ -88,7 +96,7 @@ void MidtermScene::InitScene()
 		AttachCopy<TTN_Renderer>(ship, shipRenderer);
 
 		//setup a transform for the ship
-		TTN_Transform shipTrans = TTN_Transform(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+		TTN_Transform shipTrans = TTN_Transform(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 		//attach that transform to the entity
 		AttachCopy<TTN_Transform>(ship, shipTrans);
 	}
@@ -96,12 +104,6 @@ void MidtermScene::InitScene()
 	//entities for the lights that play from the ship's engines
 	for(int i = 0; i < 2; i++) {
 		m_Lights.push_back(CreateEntity());
-
-		//setup a mesh renderer for the ship
-		TTN_Renderer shipRenderer = TTN_Renderer(TTN_AssetSystem::GetMesh("ship mesh"), TTN_AssetSystem::GetShader("basic shader"));
-		shipRenderer.SetMat(shipMat);
-		//attach that renderer to the entity
-		AttachCopy<TTN_Renderer>(m_Lights[i], shipRenderer);
 
 		//set up a trasnform for the light
 		TTN_Transform lightTrans = TTN_Transform();
@@ -118,6 +120,71 @@ void MidtermScene::InitScene()
 
 		//make the light a child of the ship
 		Get<TTN_Transform>(m_Lights[i]).SetParent(&Get<TTN_Transform>(ship), &ship);
+	}
+
+	//entity for the landingpad 
+	{
+		landingPad = CreateEntity();
+
+		//setup a mesh renderer for the landing pad
+		TTN_Renderer padRenderer = TTN_Renderer(TTN_AssetSystem::GetMesh("landing pad mesh"), TTN_AssetSystem::GetShader("basic shader"));
+		padRenderer.SetMat(landingPadMat);
+		//attach that renderer to the entity
+		AttachCopy<TTN_Renderer>(landingPad, padRenderer);
+
+		//setup a transform for the landing pad 
+		TTN_Transform padTrans = TTN_Transform(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+		//attach that transform to the entity
+		AttachCopy<TTN_Transform>(landingPad, padTrans);
+	}
+
+	//entity for the lighthouse 
+	{
+		lightHouse = CreateEntity();
+
+		//setup a mesh renderer for the light house
+		TTN_Renderer houseRenderer = TTN_Renderer(TTN_AssetSystem::GetMesh("lighthouse mesh"), TTN_AssetSystem::GetShader("basic shader"));
+		houseRenderer.SetMat(lightHouseMat);
+		//attach that renderer to the entity
+		AttachCopy<TTN_Renderer>(lightHouse, houseRenderer);
+
+		//setup a transform for the light house
+		TTN_Transform houseTrans = TTN_Transform(glm::vec3(12.5f, 5.0f, 3.0f), glm::vec3(0.0f), glm::vec3(1.0f));
+		//attach that transform to the entity
+		AttachCopy<TTN_Transform>(lightHouse, houseTrans);
+	}
+
+	//entity for the lighthouse's light
+	{
+		m_Lights.push_back(CreateEntity());
+
+		//set up a trasnform for the light
+		TTN_Transform lightTrans = TTN_Transform();
+		lightTrans.SetPos(glm::vec3(12.5f, 15.0f, 3.0f));
+		lightTrans.SetScale(glm::vec3(0.1f));
+		//attach that transform to the light entity
+		AttachCopy<TTN_Transform>(m_Lights[m_Lights.size() - 1], lightTrans);
+
+		//set up a light component for the light
+		TTN_Light lightLight = TTN_Light(glm::vec3(1.0f, 1.0f, 1.0f), 2.0f, 6.5f, 0.3f, 0.0f, 0.3f);
+		//attach that light to the light entity
+		AttachCopy<TTN_Light>(m_Lights[m_Lights.size() - 1], lightLight);
+	}
+
+	//entity for the ground plain
+	{
+		ground = CreateEntity();
+
+		//setup a mesh renderer for the ground
+		TTN_Renderer groundRenderer = TTN_Renderer(TTN_AssetSystem::GetMesh("plane"), TTN_AssetSystem::GetShader("basic shader"));
+		groundRenderer.SetMat(groundMat);
+		//attach that renderer to the entity
+		AttachCopy<TTN_Renderer>(ground, groundRenderer);
+
+		//setup a transform for the ground
+		TTN_Transform groundTrans = TTN_Transform(glm::vec3(0.0f, -2.0f, 0.0f), glm::vec3(0.0f), glm::vec3(100.0f));
+		//attach that transform to the entity
+		AttachCopy<TTN_Transform>(ground, groundTrans);
 	}
 }
 
@@ -240,7 +307,7 @@ void MidtermScene::ImGui()
 
 			//position
 			std::string tempPosString = "Light " + std::to_string(i) + " Position";
-			if (ImGui::SliderFloat3(tempPosString.c_str(), pos, -10.0f, 10.0f)) {
+			if (ImGui::SliderFloat3(tempPosString.c_str(), pos, -20.0f, 20.0f)) {
 				tempLightTransRef.SetPos(glm::vec3(pos[0], pos[1], pos[2]));
 			}
 

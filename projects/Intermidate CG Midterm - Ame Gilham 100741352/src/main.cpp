@@ -58,5 +58,7 @@ void PrepareAssetLoading() {
 	TTN_AssetSystem::AddMeshToBeLoaded("landing pad mesh", "models/LandingPad.obj");
 	TTN_AssetSystem::AddTexture2DToBeLoaded("lighthouse text", "textures/light post text.png");
 	TTN_AssetSystem::AddMeshToBeLoaded("lighthouse mesh", "models/LightHouse.obj");
+	TTN_AssetSystem::AddTexture2DToBeLoaded("ground text", "textures/ground.png");
+	TTN_AssetSystem::AddMeshToBeLoaded("plane", "models/Plane.obj");
 	TTN_AssetSystem::AddDefaultShaderToBeLoaded("basic shader", TTN_DefaultShaders::VERT_NO_COLOR, TTN_DefaultShaders::FRAG_BLINN_PHONG_ALBEDO_ONLY);
 }

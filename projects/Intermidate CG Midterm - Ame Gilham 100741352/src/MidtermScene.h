@@ -57,4 +57,7 @@ private:
 	entt::entity m_camera;
 	entt::entity skybox;
 	entt::entity ship;
+	entt::entity landingPad;
+	entt::entity lightHouse;
+	entt::entity ground;
 };
