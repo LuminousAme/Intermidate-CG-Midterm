@@ -53,6 +53,11 @@ private:
 	//bool for texture control and imgui
 	bool m_useTextures = true;
 
+	//control for the ship's flight
+	int currentPath = 0;
+	float timeSinceSegmentStart = 0.0f;
+	float segmentLenghts[5] = {5.0f, 5.0f, 10.0f, 10.0f, 5.0f};
+
 	//entities
 	entt::entity m_camera;
 	entt::entity skybox;
@@ -61,3 +66,11 @@ private:
 	entt::entity lightHouse;
 	entt::entity ground;
 };
+
+inline float FastStart(float t) {
+	return std::pow(t, 1.0f/10.0f);
+}
+
+inline float SlowStart(float t) {
+	return (t * t * t);
+}

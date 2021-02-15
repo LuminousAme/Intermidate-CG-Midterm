@@ -1,0 +1,9 @@
+Intermidate Computer Graphics Midterm - INFR 2350 - Ame Gilham #100741352
+
+I made all the models myself in blender 
+
+I additionally drew all the textures with the exception of the texture on the ground plane myself using blender's texture paint mode 
+
+The ground texture is an open source texture obtained from the following website: https://pdtextures.blogspot.com/2008/03/eighteenth-set.html
+and then resized in a photoshop to have a width divisable by 4 (requirement for Titan's texture implemntation)
+
